@@ -2,7 +2,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-
 abstract class Product {
     private String name;
     private double price;
@@ -20,10 +19,8 @@ abstract class Product {
         return price;
     }
 
-
     public abstract void displayDetails();
 }
-
 
 class ElectronicProduct extends Product {
     private String brand;
@@ -40,7 +37,6 @@ class ElectronicProduct extends Product {
         System.out.println("Price: $" + getPrice());
     }
 }
-
 
 class User {
     private String email;
@@ -60,7 +56,6 @@ class User {
     }
 }
 
-
 class ShoppingCart {
     private List<Product> items;
 
@@ -76,6 +71,11 @@ class ShoppingCart {
     }
 
     public void displayCart() {
+        if (items.isEmpty()) {
+            System.out.println("Your cart is empty.");
+            return;
+        }
+
         System.out.println("Shopping Cart Contents:");
         for (int i = 0; i < items.size(); i++) {
             System.out.println((i + 1) + ". ");
@@ -100,14 +100,26 @@ class ShoppingCart {
         }
         return totalAmount;
     }
-}
 
+    public boolean isEmpty() {
+        return items.isEmpty();
+    }
+
+    public void clearCart() {
+        items.clear();
+    }
+}
 
 public class OnlineShoppingSystem {
     private static List<User> registeredUsers = new ArrayList<>();
     private static User currentUser;
 
     public static void main(String[] args) {
+        System.out.println("===============================================");
+        System.out.println("|                                             |");
+        System.out.println("|      Welcome to Online Shopping System      |");
+        System.out.println("|                                             |");
+        System.out.println("===============================================");
 
         List<Product> productList = new ArrayList<>();
         productList.add(new ElectronicProduct("Laptop", 1200.00, "XYZ"));
@@ -117,38 +129,35 @@ public class OnlineShoppingSystem {
         productList.add(new ElectronicProduct("AC", 12000.00, "XYZ"));
         productList.add(new ElectronicProduct("PC", 2699.99, "ABC"));
 
-
         runOnlineShoppingSystem(productList);
     }
 
     private static void runOnlineShoppingSystem(List<Product> productList) {
-
-        System.out.println("Welcome to the Online Shopping System!");
-
-        // User registration
         Scanner scanner = new Scanner(System.in);
+
+        // Registration
         System.out.print("Enter your email address to register: ");
         String email = scanner.nextLine();
         System.out.print("Create a password: ");
         String password = scanner.nextLine();
         registerUser(email, password);
 
-        // User login
+        // Login
         System.out.print("\nEnter your email address to log in: ");
         String loginEmail = scanner.nextLine();
         System.out.print("Enter your password: ");
         String loginPassword = scanner.nextLine();
         loginUser(loginEmail, loginPassword);
 
-
         ShoppingCart cart = new ShoppingCart();
-
 
         while (true) {
             System.out.println("\n1. Add Order");
             System.out.println("2. Display Cart");
             System.out.println("3. Delete Item from Cart");
-            System.out.println("4. Exit");
+            System.out.println("4. Buy Product");
+            System.out.println("5. Make Payment");
+            System.out.println("6. Exit");
             System.out.print("Enter your choice: ");
             int choice = scanner.nextInt();
 
@@ -162,23 +171,76 @@ public class OnlineShoppingSystem {
                         System.out.print("Enter the quantity: ");
                         int quantity = scanner.nextInt();
                         cart.addProduct(selectedProduct, quantity);
-                        displayProductList(productList); // Display the product list again
+                        displayProductList(productList);
                     } else {
                         System.out.println("Invalid product number.");
                     }
                     break;
+
                 case 2:
                     cart.displayCart();
                     System.out.println("Total Amount: $" + cart.calculateTotalAmount());
                     break;
+
                 case 3:
                     System.out.print("Enter the item number to delete from the cart: ");
                     int itemNumber = scanner.nextInt();
                     cart.deleteProduct(itemNumber);
                     break;
+
                 case 4:
+                    cart.displayCart();
+                    double totalAmount = cart.calculateTotalAmount();
+                    if (cart.isEmpty()) {
+                        System.out.println("Your cart is empty. Please add items first.");
+                    } else {
+                        System.out.println("Total Amount to Pay: $" + totalAmount);
+                        System.out.print("Do you want to proceed to payment? (yes/no): ");
+                        scanner.nextLine(); // Consume newline
+                        String confirm = scanner.nextLine();
+                        if (confirm.equalsIgnoreCase("yes")) {
+                            System.out.println("Redirecting to payment...");
+                            System.out.println("Please select 'Make Payment' option to complete your purchase.");
+                        } else {
+                            System.out.println("Order not placed.");
+                        }
+                    }
+                    break;
+
+                case 5:
+                    if (cart.isEmpty()) {
+                        System.out.println("Your cart is empty. Add items before making a payment.");
+                    } else {
+                        System.out.println("Choose Payment Method:");
+                        System.out.println("1. Debit Card");
+                        System.out.println("2. Credit Card");
+                        System.out.print("Enter choice: ");
+                        int paymentChoice = scanner.nextInt();
+                        scanner.nextLine(); // Consume newline
+
+                        System.out.print("Enter Card Number: ");
+                        String cardNumber = scanner.nextLine();
+
+                        if (paymentChoice == 1) {
+                            System.out.println("Processing payment via Debit Card...");
+                        } else if (paymentChoice == 2) {
+                            System.out.println("Processing payment via Credit Card...");
+                        } else {
+                            System.out.println("Invalid payment method.");
+                            break;
+                        }
+
+                        System.out.println("Validating card ending with " + cardNumber.substring(cardNumber.length() - 4) + "...");
+                        System.out.println("Payment of $" + cart.calculateTotalAmount() + " successful! ✅");
+                        cart.clearCart();
+                    }
+                    break;
+
+                case 6:
                     System.out.println("Exiting the Online Shopping System. Goodbye!");
                     System.exit(0);
+                    break;
+
                 default:
                     System.out.println("Invalid choice. Please enter a valid option.");
             }
@@ -186,7 +248,6 @@ public class OnlineShoppingSystem {
     }
 
     private static void registerUser(String email, String password) {
-
         if (isValidEmail(email)) {
             User newUser = new User(email, password);
             registeredUsers.add(newUser);
@@ -199,7 +260,6 @@ public class OnlineShoppingSystem {
 
     private static void loginUser(String email, String password) {
         User foundUser = findUserByEmail(email);
-
         if (foundUser != null && foundUser.getPassword().equals(password)) {
             currentUser = foundUser;
             System.out.println("Login successful! Welcome, " + currentUser.getEmail() + "!");
@@ -210,7 +270,6 @@ public class OnlineShoppingSystem {
     }
 
     private static boolean isValidEmail(String email) {
-
         return email.matches("[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}");
     }
 
@@ -225,12 +284,9 @@ public class OnlineShoppingSystem {
 
     private static void displayProductList(List<Product> productList) {
         System.out.println("\nAvailable Products:");
-        for (int i = 0; i < productList.size(); i++) { 
+        for (int i = 0; i < productList.size(); i++) {
             Product product = productList.get(i);
             System.out.println((i + 1) + ". " + product.getName() + " - $" + product.getPrice());
         }
     }
 }
-
-
-
